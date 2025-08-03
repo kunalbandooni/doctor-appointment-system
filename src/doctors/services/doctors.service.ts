@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
+import { doctors } from 'src/data/database';
 import { Doctor } from '../entities/doctor.entity';
 import { CreateDoctorDto } from '../dto/create-doctor.dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DoctorsService {
 
-  private doctors: Doctor[] = [];
+  private doctors = doctors;
 
   async create(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
     const doctor: Doctor = {

@@ -9,7 +9,7 @@ async function bootstrap() {
     .setTitle('Doctor API')
     .setDescription('REST API for managing doctors')
     .setVersion('1.0')
-    .addTag('doctors')
+    // .addTag('doctors')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

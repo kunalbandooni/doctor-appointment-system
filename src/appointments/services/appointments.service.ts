@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { appointments } from 'src/data/database';
 import { Appointment } from '../entities/appointment.entity';
 import { CreateAppointmentDto } from '../dto/create-appointment.dto';
 import { UpdateAppointmentDto } from '../dto/update-appointment.dto';
@@ -7,7 +8,7 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AppointmentsService {
-  private appointments: Appointment[] = [];
+  private appointments = appointments;
 
   create(dto: CreateAppointmentDto): Appointment {
     const { doctorId, patientName, startTime, endTime } = dto;
