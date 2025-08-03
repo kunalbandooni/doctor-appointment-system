@@ -14,6 +14,11 @@ export class DoctorsService {
       id: uuidv4().toString(),
       name: createDoctorDto.name,
       specialist: createDoctorDto.specialist,
+      workingHours: {
+        startTime: createDoctorDto.startTime,
+        endTime: createDoctorDto.endTime
+      },
+      slotDuration: createDoctorDto.slotDuration,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       deleted: false,

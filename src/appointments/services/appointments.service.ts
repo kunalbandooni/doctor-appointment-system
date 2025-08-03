@@ -1,9 +1,11 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { appointments } from 'src/data/database';
-import { Appointment } from '../entities/appointment.entity';
+import { appointments, doctors } from 'src/data/database';
+import { Appointment, AppointmentStatus } from '../entities/appointment.entity';
 import { CreateAppointmentDto } from '../dto/create-appointment.dto';
 import { UpdateAppointmentDto } from '../dto/update-appointment.dto';
 import { CompleteAppointmentDto } from '../dto/complete-appointment.dto';
+import { ViewAllAppointment } from '../dto/view-all-appointment.dto';
+import { millisToTimeString, millisToDate } from 'src/utils/time.util';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -41,7 +43,7 @@ export class AppointmentsService {
       patientName,
       startTime: start,
       endTime: end,
-      status: 'BOOKED',
+      status: AppointmentStatus.BOOKED,
       createdAt: new Date().getTime(),
     };
 
@@ -49,8 +51,52 @@ export class AppointmentsService {
     return appointment;
   }
 
-  findAll(): Appointment[] {
-    return this.appointments;
+  getAvailableSlots(doctorId: string, date: string): { startTime: number; endTime: number }[] {
+    const doctor = doctors.find(d => d.id === doctorId);
+    if (!doctor) throw new NotFoundException('Doctor not found');
+
+    const SLOT_DURATION_MIN = 30;
+    const slots: { startTime: number; endTime: number }[] = [];
+
+    const [year, month, day] = date.split('-').map(Number);
+
+    const workStart = new Date(year, month - 1, day, ...doctor.workingHours.startTime.split(':').map(Number)).getTime();
+    const workEnd = new Date(year, month - 1, day, ...doctor.workingHours.endTime.split(':').map(Number)).getTime();
+
+    for (let start = workStart; start + SLOT_DURATION_MIN * 60000 <= workEnd; start += SLOT_DURATION_MIN * 60000) {
+      const end = start + SLOT_DURATION_MIN * 60000;
+      slots.push({ startTime: start, endTime: end });
+    }
+
+    const booked = this.appointments.filter(
+      a =>
+        a.doctorId === doctorId &&
+        a.status !== 'CANCELLED' &&
+        new Date(a.startTime).toDateString() === new Date(workStart).toDateString()
+    );
+
+    const available = slots.filter(slot => {
+      return !booked.some(appt =>
+        (slot.startTime >= appt.startTime && slot.startTime < appt.endTime) ||
+        (slot.endTime > appt.startTime && slot.endTime <= appt.endTime) ||
+        (slot.startTime <= appt.startTime && slot.endTime >= appt.endTime)
+      );
+    });
+
+    return available.map(slot => ({
+      ...slot,
+      startTimeStr: millisToTimeString(slot.startTime),
+      endTimeStr: millisToTimeString(slot.endTime),
+    }));
+  }
+
+  findAll(): ViewAllAppointment[] {
+    return this.appointments.map(appointment => ({
+      ...appointment,
+      date: millisToDate(appointment.startTime),
+      startTime: millisToTimeString(appointment.startTime),
+      endTime: millisToTimeString(appointment.endTime),
+    }));
   }
 
   findByDoctorId(doctorId: string): Appointment[] {
@@ -96,7 +142,7 @@ export class AppointmentsService {
       throw new BadRequestException('Actual end time cannot exceed original end time.');
     }
 
-    appt.status = 'COMPLETED';
+    appt.status = AppointmentStatus.COMPLETED,
     appt.actualEndTime = actualEnd;
     return appt;
   }
@@ -104,7 +150,7 @@ export class AppointmentsService {
   cancel(id: string): Appointment {
     const appt = this.appointments.find((a) => a.id === id);
     if (!appt) throw new NotFoundException('Appointment not found');
-    appt.status = 'CANCELLED';
+    appt.status = AppointmentStatus.CANCELLED;
     return appt;
   }
 }

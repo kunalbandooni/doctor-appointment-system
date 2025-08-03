@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsUUID, IsNotEmpty, IsDateString } from 'class-validator';
 
 export class CreateAppointmentDto {
-  @ApiProperty({ example: '123', description: 'ID of the doctor' })
+  @ApiProperty({ example: 'a0f5c830-1234-4bc1-832d-1234567890ab', description: 'ID of the doctor' })
   @IsUUID()
   @IsNotEmpty()
   doctorId: string;

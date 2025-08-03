@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AppointmentsService } from '../services/appointments.service';
 import { CreateAppointmentDto } from '../dto/create-appointment.dto';
@@ -23,6 +23,14 @@ export class AppointmentsController {
   @ApiResponse({ status: 200, description: 'List of all appointments' })
   findAll() {
     return this.service.findAll();
+  }
+
+  @Get('/slots/:doctorId')
+  @ApiOperation({ summary: 'Get all available slots' })
+  @ApiResponse({ status: 200, description: 'List of all slots available' })
+  getAvailableSlots(@Param('doctorId') doctorId: string, @Query('date') date: string) {
+    if (!date) throw new BadRequestException('Date query param is required in YYYY-MM-DD format');
+    return this.service.getAvailableSlots(doctorId, date);
   }
 
   @Get('doctor/:doctorId')

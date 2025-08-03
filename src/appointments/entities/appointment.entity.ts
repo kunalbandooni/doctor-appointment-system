@@ -1,4 +1,8 @@
-export type AppointmentStatus = 'BOOKED' | 'COMPLETED' | 'CANCELLED';
+export enum AppointmentStatus {
+  BOOKED = 'BOOKED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
 
 export class Appointment {
   id: string;

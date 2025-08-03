@@ -2,6 +2,11 @@ export class Doctor {
   id: string;
   name: string;
   specialist: string;
+  workingHours: {
+    startTime: string;
+    endTime: string;
+  }
+  slotDuration: number;
   createdAt: number;
   updatedAt: number;
   deleted: boolean
